@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.javadog</groupId>
+    <artifactId>high-concurrency-practice</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <description>高并发实践，测试高并发场景下的事务问题，与性能调优</description>
+
+    <dependencies>
+
+    </dependencies>
+
+</project>
