@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+spring:
+  # 多线程执行器
+  task:
+    execution:
+      pool:
+        core-size: 40
+        max-size: 40
+        keep-alive: 60s
+        queue-capacity: 10000000
+
+  # datasource 数据源配置内容
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/high_concurrency?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+
