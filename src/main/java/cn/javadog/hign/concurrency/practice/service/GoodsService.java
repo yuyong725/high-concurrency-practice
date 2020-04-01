@@ -1,5 +1,7 @@
 package cn.javadog.hign.concurrency.practice.service;
 
+import cn.javadog.hign.concurrency.practice.dto.GoodsDto;
+
 /**
  * @author 余勇
  * @date 2020年03月29日 20:31:00
@@ -16,4 +18,34 @@ public interface GoodsService {
 	 */
 	boolean generateData();
 
+	/**
+	 * 购买商品
+	 * 直接从mysql中获取
+	 */
+	GoodsDto buy01(Integer goodsId, Integer buyNum);
+
+	/**
+	 * 在buy01的基础上，增加事务
+	 */
+	GoodsDto buy02(Integer goodsId, Integer buyNum);
+
+	/**
+	 * 悲观锁
+	 */
+	GoodsDto buy03(Integer goodsId, Integer buyNum);
+
+	/**
+	 * 悲观锁，加事务
+	 */
+	GoodsDto buy04(Integer goodsId, Integer buyNum);
+
+	/**
+	 * 乐观锁
+	 */
+	GoodsDto buy05(Integer goodsId, Integer buyNum);
+
+	/**
+	 * redis分布式锁+mysql
+	 */
+	GoodsDto buy06(Integer goodsId, Integer buyNum);
 }
