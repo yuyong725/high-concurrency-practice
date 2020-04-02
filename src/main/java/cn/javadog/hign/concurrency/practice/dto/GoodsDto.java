@@ -48,4 +48,5 @@ public class GoodsDto {
 		dto.setCategory(dataMap.get("category").toString());
 		return dto;
 	}
+
 }

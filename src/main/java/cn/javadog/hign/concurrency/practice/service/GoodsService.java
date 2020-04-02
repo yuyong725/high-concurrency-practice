@@ -35,14 +35,14 @@ public interface GoodsService {
 	GoodsDto buy03(Integer goodsId, Integer buyNum);
 
 	/**
-	 * 悲观锁，加事务
+	 * 乐观锁
 	 */
 	GoodsDto buy04(Integer goodsId, Integer buyNum);
 
 	/**
-	 * 乐观锁
+	 * 分布式锁 + 异步
 	 */
-	GoodsDto buy05(Integer goodsId, Integer buyNum);
+	void buy05(Integer goodsId, Integer buyNum);
 
 	/**
 	 * redis分布式锁+mysql

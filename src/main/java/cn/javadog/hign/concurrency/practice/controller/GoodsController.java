@@ -94,4 +94,15 @@ public class GoodsController {
 		return format;
 	}
 
+	private AtomicInteger buy05Counter = new AtomicInteger(0);
+
+	@GetMapping("buy05")
+	public String buy05(@RequestParam Integer goodsId,  @RequestParam(defaultValue = "1") Integer buyNum) {
+		goodsService.buy05(goodsId, buyNum);
+		int sale = buy05Counter.incrementAndGet();
+		String format = String.format("成功购买 %s 件商品，当前销量 %s 件", buyNum, sale);
+		logger.info(format);
+		return format;
+	}
+
 }

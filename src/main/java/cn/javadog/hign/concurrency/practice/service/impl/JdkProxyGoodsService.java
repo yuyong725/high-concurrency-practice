@@ -1,21 +1,21 @@
 package cn.javadog.hign.concurrency.practice.service.impl;
 
+import cn.javadog.hign.concurrency.practice.config.AsyncConfig;
 import cn.javadog.hign.concurrency.practice.constants.CategoryConstans;
 import cn.javadog.hign.concurrency.practice.dto.GoodsDto;
-import cn.javadog.hign.concurrency.practice.entity.GoodsSale;
 import cn.javadog.hign.concurrency.practice.exception.DbKeyException;
 import cn.javadog.hign.concurrency.practice.exception.LatchException;
 import cn.javadog.hign.concurrency.practice.service.GoodsService;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import static cn.javadog.hign.concurrency.practice.constants.SqlContants.*;
 
@@ -26,6 +26,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -79,7 +81,7 @@ public class JdkProxyGoodsService implements GoodsService {
 	 *
 	 * note: @Transactional的作用：https://blog.csdn.net/weixin_40910372/article/details/103565970?depth_1-utm_source=distribute.pc_relevant.none-task&utm_source=distribute.pc_relevant.none-task
 	 */
-	@Async
+	@Async(AsyncConfig.EXECUTOR_ONE_BEAN_NAME)
 	@Transactional(rollbackFor = Exception.class)
 	public void generateOneData(Date date) {
 		// 随机一个类目id
@@ -303,10 +305,41 @@ public class JdkProxyGoodsService implements GoodsService {
 		return dto;
 	}
 
+	@Autowired
+	private RedissonClient redissonClient;
+
+	private static final String LOCK_KEY = "buy05lock";
+
+	/**
+	 * @date 2020-04-02 12:54
+	 *
+	 * 平均响应时间(去掉启动后的第一次)：（23+10+12） / 3 =15ms
+	 * 库存剩余0件，销量100件，始终如此，没有超卖
+	 *
+	 * 结论：
+	 * 1、成功秒杀
+	 * 2、响应很快，并没有因为锁响应速度收到影响
+	 * 3、将mysql数据库事务可能的问题转给redis，然后将任务存储到队列串行执行
+	 */
 	@Override
-	public GoodsDto buy05(Integer goodsId, Integer buyNum) {
-		return null;
+	public void buy05(Integer goodsId, Integer buyNum) {
+		final RLock lock = redissonClient.getLock(LOCK_KEY);
+		lock.lock();
+		ListenableFuture<GoodsDto> future = self().asyncBuy05(goodsId, buyNum);
+		lock.unlock();
+		// 这里也可以等待 asyncBuy05 返回，但意义不大，保证不超卖就好
+		// future.get();
 	}
+
+	@Async(AsyncConfig.EXECUTOR_TWO_BEAN_NAME)
+	public ListenableFuture<GoodsDto> asyncBuy05(Integer goodsId, Integer buyNum) {
+		GoodsDto goodsDto = buy01(goodsId, buyNum);
+		// 校验下线程池是否生效
+		// logger.info("当前线程名：" + Thread.currentThread().getName());
+		return AsyncResult.forValue(goodsDto);
+	}
+
+
 
 	@Override
 	public GoodsDto buy06(Integer goodsId, Integer buyNum) {
